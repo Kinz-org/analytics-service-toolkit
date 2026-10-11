@@ -33,7 +33,7 @@ dev = [
 astk = "astk.cli:app"
 
 [project.urls]
-Repository = "https://github.com/nassim0014/analytics-service-toolkit"
+Repository = "https://github.com/Kinz-org/analytics-service-toolkit"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/astk"]

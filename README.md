@@ -62,7 +62,7 @@ replacement for it.
 ## Install
 
 ```bash
-pip install "analytics-service-toolkit[streamlit] @ git+https://github.com/nassim0014/analytics-service-toolkit"
+pip install "analytics-service-toolkit[streamlit] @ git+https://github.com/Kinz-org/analytics-service-toolkit"
 ```
 
 Extras: `[streamlit]` for the dashboard helpers, `[postgres]` for the
