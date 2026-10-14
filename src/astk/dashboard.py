@@ -35,6 +35,8 @@ def _require_streamlit() -> None:
 
 @dataclass
 class KPI:
+    """One headline metric for :func:`kpi_row`: label, value, optional delta, display format."""
+
     label: str
     value: float
     delta: float | None = None
@@ -61,6 +63,7 @@ def threshold_color(value: float, thresholds: tuple[float, float]) -> str:
 
 
 def page_header(title: str, subtitle: str | None = None, env_badge: str | None = None) -> None:
+    """Render the page title, with an optional subtitle and ``env: <badge>`` caption."""
     _require_streamlit()
     st.title(title)
     if subtitle:
@@ -70,6 +73,7 @@ def page_header(title: str, subtitle: str | None = None, env_badge: str | None =
 
 
 def kpi_row(kpis: list[KPI]) -> None:
+    """Render one ``st.metric`` per KPI, side by side in equal-width columns."""
     _require_streamlit()
     columns = st.columns(len(kpis))
     for column, kpi in zip(columns, kpis, strict=True):
@@ -77,6 +81,7 @@ def kpi_row(kpis: list[KPI]) -> None:
 
 
 def health_gauge(value: float, thresholds: tuple[float, float], label: str = "Health") -> None:
+    """Show a 0-1 value as a progress bar plus a percentage coloured by :func:`threshold_color`."""
     _require_streamlit()
     color = threshold_color(value, thresholds)
     st.markdown(f"**{label}**")
@@ -88,11 +93,13 @@ def health_gauge(value: float, thresholds: tuple[float, float], label: str = "He
 
 
 def timeseries(df, x: str, y: str) -> None:
+    """Draw a line chart of column ``y`` against column ``x`` of ``df``."""
     _require_streamlit()
     st.line_chart(df, x=x, y=y)
 
 
 def data_table(df, editable: bool = False):
+    """Show `df` as a table; if `editable`, return the user-edited frame, else `df`."""
     _require_streamlit()
     if editable:
         return st.data_editor(df)
@@ -101,6 +108,7 @@ def data_table(df, editable: bool = False):
 
 
 def sidebar_filters(options: dict[str, list]) -> dict:
+    """Render one sidebar selectbox per ``options`` entry and return ``{key: selected value}``."""
     _require_streamlit()
     result: dict = {}
     with st.sidebar:
