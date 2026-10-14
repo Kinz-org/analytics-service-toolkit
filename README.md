@@ -118,9 +118,11 @@ Being honest about v1's edges:
 
 Pre-1.0 versioning policy: **minor** version bumps (`0.1.x` → `0.2.0`) may
 break the public API; **patch** bumps (`0.1.0` → `0.1.1`) never do. See
-[CHANGELOG.md](CHANGELOG.md) for what changed in each release. Once a
-consumer pins a tag (see the Install section), a `pip install -U` will never
-silently change behaviour underneath it - only an explicit re-pin can.
+[CHANGELOG.md](CHANGELOG.md) for what changed in each release. No release
+tag has been pushed yet, so the Install command above tracks `main`. To keep
+behaviour from changing underneath you, pin a commit instead
+(`...analytics-service-toolkit@<commit-sha>`); only an explicit re-pin then
+changes what you get.
 
 ## Development
 
