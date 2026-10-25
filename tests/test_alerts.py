@@ -1,5 +1,6 @@
 import time
 
+import httpx
 import pytest
 
 from astk.alerts import Alert, ConsoleNotifier, Deduplicator, SlackNotifier
@@ -68,6 +69,52 @@ def test_slack_notifier_never_raises_on_permanent_failure():
     assert result.ok is False
     assert result.attempts == 3
     assert result.error == "HTTP 500"
+
+
+def test_slack_notifier_retries_on_429():
+    client = _FakeClient([429, 200])
+    notifier = SlackNotifier("https://hooks.slack.com/x", client=client, backoff_base=0)
+
+    result = notifier.send(Alert(title="t", body="b"))
+
+    assert result.ok is True
+    assert result.attempts == 2
+
+
+def test_slack_notifier_retries_on_network_error_then_succeeds():
+    class _FlakyClient:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def post(self, url, json=None):
+            self.calls += 1
+            if self.calls == 1:
+                raise httpx.ConnectError("connection refused")
+            return _FakeResponse(200)
+
+    client = _FlakyClient()
+    notifier = SlackNotifier("https://hooks.slack.com/x", client=client, backoff_base=0)
+
+    result = notifier.send(Alert(title="t", body="b"))
+
+    assert result.ok is True
+    assert result.attempts == 2
+
+
+def test_slack_notifier_reports_network_error_when_retries_exhausted():
+    class _DownClient:
+        def post(self, url, json=None):
+            raise httpx.ConnectError("connection refused")
+
+    notifier = SlackNotifier(
+        "https://hooks.slack.com/x", client=_DownClient(), backoff_base=0, max_retries=2
+    )
+
+    result = notifier.send(Alert(title="t", body="b"))
+
+    assert result.ok is False
+    assert result.attempts == 2
+    assert result.error == "connection refused"
 
 
 def test_slack_notifier_stops_immediately_on_non_retryable_error():
