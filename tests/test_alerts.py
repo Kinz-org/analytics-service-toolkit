@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from astk.alerts import Alert, ConsoleNotifier, Deduplicator, SlackNotifier
+from astk.alerts import Alert, ConsoleNotifier, Deduplicator, SlackNotifier, _build_payload
 
 
 class _FakeResponse:
@@ -182,3 +182,33 @@ def test_slack_notifier_context_manager_closes_the_client_it_created(monkeypatch
     with SlackNotifier("https://hooks.slack.com/x") as notifier:
         assert notifier._owns_client is True
     assert created.closed is True
+
+
+def test_build_payload_renders_fields_and_link_inside_the_attachment():
+    payload = _build_payload(
+        Alert(
+            title="t",
+            body="b",
+            severity="critical",
+            fields={"env": "prod", "host": "a1"},
+            link="https://example.com/run/1",
+        )
+    )
+    (attachment,) = payload["attachments"]
+    assert attachment["color"] == "#dc2626"
+    blocks = attachment["blocks"]
+    assert [b["type"] for b in blocks] == ["header", "section", "section", "actions"]
+    assert blocks[2]["text"]["text"] == "*env:* prod\n*host:* a1"
+    assert blocks[3]["elements"][0]["url"] == "https://example.com/run/1"
+
+
+def test_build_payload_truncates_long_title_and_omits_optional_blocks():
+    payload = _build_payload(Alert(title="x" * 200, body="b"))
+    blocks = payload["attachments"][0]["blocks"]
+    assert len(blocks[0]["text"]["text"]) == 150
+    assert [b["type"] for b in blocks] == ["header", "section"]
+
+
+def test_build_payload_unknown_severity_falls_back_to_grey():
+    payload = _build_payload(Alert(title="t", body="b", severity="bogus"))  # type: ignore[arg-type]
+    assert payload["attachments"][0]["color"] == "#6b7280"
