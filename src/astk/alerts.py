@@ -27,6 +27,12 @@ _SEVERITY_COLOR = {
 
 @dataclass
 class Alert:
+    """A message to deliver through a `Notifier`.
+
+    `severity` picks the colour in Slack payloads; `fields` render as
+    key/value pairs under the body and `link`, when set, adds a button.
+    """
+
     title: str
     body: str
     severity: Severity = "info"
@@ -36,6 +42,10 @@ class Alert:
 
 @dataclass
 class AlertResult:
+    """Outcome of a `Notifier.send` call: success flag, delivery attempts
+    made, and the last error message when `ok` is False.
+    """
+
     ok: bool
     attempts: int
     error: str | None = None
@@ -290,4 +300,7 @@ class Deduplicator:
         self._backend = backend if backend is not None else InMemoryDedupBackend()
 
     def should_send(self, key: str) -> bool:
+        """Return True and start a new TTL window if `key` is not already
+        suppressed; return False while an earlier claim is still live.
+        """
         return self._backend.claim(key, timedelta(seconds=self.ttl_s))
