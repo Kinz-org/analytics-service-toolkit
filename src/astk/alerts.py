@@ -27,6 +27,8 @@ _SEVERITY_COLOR = {
 
 @dataclass
 class Alert:
+    """A notification to deliver: title, body, severity, optional key/value fields and link."""
+
     title: str
     body: str
     severity: Severity = "info"
@@ -36,12 +38,16 @@ class Alert:
 
 @dataclass
 class AlertResult:
+    """Outcome of a send: success flag, attempts made, and the last error if it failed."""
+
     ok: bool
     attempts: int
     error: str | None = None
 
 
 class Notifier(Protocol):
+    """Anything that can deliver an :class:`Alert` and report an :class:`AlertResult`."""
+
     def send(self, alert: Alert) -> AlertResult: ...
 
 
@@ -290,4 +296,5 @@ class Deduplicator:
         self._backend = backend if backend is not None else InMemoryDedupBackend()
 
     def should_send(self, key: str) -> bool:
+        """Return True the first time ``key`` is seen within the TTL window, False for repeats."""
         return self._backend.claim(key, timedelta(seconds=self.ttl_s))
