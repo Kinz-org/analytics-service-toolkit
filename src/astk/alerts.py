@@ -27,6 +27,8 @@ _SEVERITY_COLOR = {
 
 @dataclass
 class Alert:
+    """A message to deliver: a title, a body, a severity and optional key/value fields and link."""
+
     title: str
     body: str
     severity: Severity = "info"
@@ -36,12 +38,16 @@ class Alert:
 
 @dataclass
 class AlertResult:
+    """Outcome of a send: success flag, number of attempts made, and the last error if any."""
+
     ok: bool
     attempts: int
     error: str | None = None
 
 
 class Notifier(Protocol):
+    """Anything that can deliver an Alert and report the result."""
+
     def send(self, alert: Alert) -> AlertResult: ...
 
 
